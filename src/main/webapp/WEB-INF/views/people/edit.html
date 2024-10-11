@@ -12,11 +12,17 @@
     <input type="text" th:field="*{fullName}" id="fullName"/>
     <div style="color:red" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}">Ошибка имени</div>
     <br/>
-    <label for="yearOfBirth">Введите год рождения: </label>
-    <input type="text" th:field="*{birthYear}" id="yearOfBirth"/>
-    <div style="color:red" th:if="${#fields.hasErrors('yearOfBirth')}" th:errors="*{birthYear}">Ошибка возраста</div>
+    <label for="birthYear">Введите год рождения: </label>
+    <input type="text" th:field="*{birthYear}" id="birthYear"/>
+    <div style="color:red" th:if="${#fields.hasErrors('birthYear')}" th:errors="*{birthYear}">Ошибка возраста</div>
+    <br/>
+    <label for="email">Enter email: </label>
+    <input type="text" th:field="*{email}" id="email"/>
+    <div style="color:red" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Email Error</div>
     <br/>
     <input type="submit" value="Обновлено!"/>
+    <br>
+    <a href="/people">Назад</a>
 </form>
 
 </body>

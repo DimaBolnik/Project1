@@ -1,10 +1,11 @@
 package ru.bolnik.web.dao;
 
 
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import ru.bolnik.web.models.Book;
 import ru.bolnik.web.models.Person;
 
@@ -14,45 +15,66 @@ import java.util.Optional;
 @Component
 public class PersonDAO {
 
-    private final JdbcTemplate jdbcTemplate;
-
+    private final SessionFactory sessionFactory;
 
     @Autowired
-    public PersonDAO(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    public PersonDAO(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
     }
 
+    @Transactional(readOnly = true)
     public List<Person> index() {
-        return jdbcTemplate.query("select * from person", new BeanPropertyRowMapper<>(Person.class));
+        Session session = sessionFactory.getCurrentSession();
+        return session.createQuery("from Person", Person.class).list();
     }
 
+    @Transactional(readOnly = true)
     public Person show(int id) {
-        return jdbcTemplate.query("select * from person where id=?", new Object[]{id},
-               new BeanPropertyRowMapper<>(Person.class)).stream().findAny().orElse(null);
+        Session session = sessionFactory.getCurrentSession();
+        return session.get(Person.class, id);
     }
 
+    @Transactional
     public void save(Person person) {
-        jdbcTemplate.update("insert into Person(full_name, birth_year) values (?, ?)", person.getFullName(),
-                person.getBirthYear());
+        Session session = sessionFactory.getCurrentSession();
+        session.save(person);
     }
 
+    @Transactional
     public void update(int id, Person updatedPerson) {
-        jdbcTemplate.update("update Person set full_name=?, birth_year=? where id=?", updatedPerson.getFullName(),
-                updatedPerson.getBirthYear(), id);
+        Session session = sessionFactory.getCurrentSession();
+        Person person = session.get(Person.class, id);
+        person.setFullName(updatedPerson.getFullName());
+        person.setBirthYear(updatedPerson.getBirthYear());
+        person.setEmail(updatedPerson.getEmail());
+        session.saveOrUpdate(person);
     }
 
+    @Transactional
     public void delete(int id) {
-        jdbcTemplate.update("delete from Person where id=?", id);
+        Session session = sessionFactory.getCurrentSession();
+        Person person = session.get(Person.class, id);
+        session.remove(person);
     }
 
     //для валидации уникальности фио
+    @Transactional(readOnly = true)
     public Optional<Person> getPersonByFullName(String fullName) {
-        return jdbcTemplate.query("select * from person where full_name=?", new Object[]{fullName},
-                new BeanPropertyRowMapper<>(Person.class)).stream().findAny();
+        Session session = sessionFactory.getCurrentSession();
+        Optional<Person> fullName1 = session.createQuery("from Person where fullName = :fullName", Person.class)
+                .setParameter("fullName", fullName).uniqueResultOptional();
+        return fullName1;
     }
+//        return jdbcTemplate.query("select * from person where full_name=?", new Object[]{fullName},
+//                new BeanPropertyRowMapper<>(Person.class)).stream().findAny();
 
+
+    @Transactional(readOnly = true)
     public List<Book> getBooksByPersonId(int id) {
-        return jdbcTemplate.query("select * from book where person_id = ?", new Object[]{id},
-                new BeanPropertyRowMapper<>(Book.class));
+        Session session = sessionFactory.getCurrentSession();
+        Person person = session.get(Person.class, id);
+        return person.getBooks();
+//        return jdbcTemplate.query("select * from book where person_id = ?", new Object[]{id},
+//                new BeanPropertyRowMapper<>(Book.class));
     }
 }
