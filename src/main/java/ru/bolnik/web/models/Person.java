@@ -1,12 +1,16 @@
 package ru.bolnik.web.models;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "person")
@@ -22,14 +26,23 @@ public class Person {
     @Column(name = "full_name")
     private String fullName;
 
-    @Min(value = 1900, message = "Год рождения должен быть не меньше 1900")
-    @Column(name = "birth_year")
-    private int birthYear;
 
     @Column(name = "email")
     @NotEmpty(message = "Email не должен быть пустым")
     @Email
     private String email;
+
+    @Column(name = "date_of_birth")
+    @Temporal(TemporalType.DATE)
+    @DateTimeFormat(pattern = "dd/MM/yyyy")
+    private Date dateOfBirth;
+
+    @Column(name = "created_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createdAt;
+
+    @Enumerated(EnumType.STRING)
+    private Mood mood;
 
     @OneToMany(mappedBy = "person",fetch = FetchType.EAGER)
     private List<Book> books;
@@ -37,9 +50,10 @@ public class Person {
     public Person() {
     }
 
-    public Person(String fullName, int yearOfBirth) {
+    public Person(String fullName, Date dateOfBirth, String email) {
         this.fullName = fullName;
-        this.birthYear = yearOfBirth;
+        this.dateOfBirth = dateOfBirth;
+        this.email = email;
     }
 
     public String getEmail() {
@@ -77,11 +91,40 @@ public class Person {
         this.fullName = fullName;
     }
 
-    public int getBirthYear() {
-        return birthYear;
+    public Date getDateOfBirth() {
+        return dateOfBirth;
     }
 
-    public void setBirthYear(int yearOfBirth) {
-        this.birthYear = yearOfBirth;
+    public void setDateOfBirth(Date dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Mood getMood() {
+        return mood;
+    }
+
+    public void setMood(Mood mood) {
+        this.mood = mood;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Person person = (Person) o;
+        return Objects.equals(fullName, person.fullName) && Objects.equals(email, person.email) && Objects.equals(dateOfBirth, person.dateOfBirth);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(fullName, email, dateOfBirth);
     }
 }

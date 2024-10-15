@@ -1,6 +1,5 @@
 package ru.bolnik.web.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -26,9 +25,15 @@ public class BooksController {
     }
 
     @GetMapping()
-    public String index(Model model) {
-        //получим всех людей из DAO
-        model.addAttribute("books", bookService.findAll());
+    public String index(Model model, @RequestParam(value = "page", required = false) Integer page,
+                        @RequestParam(value = "books_per_page", required = false) Integer booksPerPage,
+                        @RequestParam(value = "sort_by_year", required = false) boolean sortByYear) {
+
+        if (page == null || booksPerPage == null)
+            model.addAttribute("books", bookService.findAll(sortByYear)); // выдача всех книг
+        else
+            model.addAttribute("books", bookService.findWithPagination(page, booksPerPage, sortByYear));
+
         return "books/index";
     }
 
@@ -36,13 +41,12 @@ public class BooksController {
     public String show(@PathVariable("id") int id, Model model, @ModelAttribute("person") Person person) {
         model.addAttribute("book", bookService.findOne(id));
 
-        Optional<Person> bookOwner = bookService.getBookOwner(id);
-        if (bookOwner.isPresent()) {
-            model.addAttribute("owner", bookOwner.get());
+        Person bookOwner = bookService.getBookOwner(id);
+        if (bookOwner != null) {
+            model.addAttribute("owner", bookOwner);
         } else {
             model.addAttribute("people", peopleService.findAll());
         }
-
         return "books/show";
     }
 
@@ -54,7 +58,6 @@ public class BooksController {
     @PostMapping
     public String create(@ModelAttribute("book") @Valid Book book,
                          BindingResult bindingResult) {
-
         if (bindingResult.hasErrors()) {
             return "books/new";
         }
@@ -71,7 +74,6 @@ public class BooksController {
     @PatchMapping("/{id}")
     public String update(@ModelAttribute("book") @Valid Book book,
                          BindingResult bindingResult, @PathVariable("id") int id) {
-
         if (bindingResult.hasErrors()) {
             return "books/edit";
         }
@@ -85,16 +87,27 @@ public class BooksController {
         return "redirect:/books";
     }
 
+    @PatchMapping("/{id}/assign")
+    public String assign(@PathVariable("id") int id, @ModelAttribute("person") Person person) {
+        bookService.assign(id, person);
+        return "redirect:/books/" + id;
+    }
+
     @PatchMapping("/{id}/release")
     public String release(@PathVariable("id") int id) {
         bookService.release(id);
         return "redirect:/books/" + id;
     }
 
-    @PatchMapping("/{id}/assign")
-    public String assign(@PathVariable("id") int id, @ModelAttribute("person") Person person) {
-        bookService.assign(id, person);
-        return "redirect:/books/" + id;
+    @GetMapping("/search")
+    public String searchPage() {
+        return "books/search";
+    }
+
+    @PostMapping("/search")
+    public String makeSearch(Model model, @RequestParam("query") String query) {
+        model.addAttribute("books", bookService.searchByTitle(query));
+        return "books/search";
     }
 
 }

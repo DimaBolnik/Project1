@@ -4,6 +4,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
+import java.util.Date;
 
 @Entity
 @Table(name = "book")
@@ -28,6 +29,13 @@ public class Book {
     @Min(value = 1500, message = "Год должен быть больше 1500г.")
     @Column(name = "year")
     private int year;
+
+    @Column(name = "take_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date takeAt;
+
+    @Transient
+    private boolean expires;
 
     @ManyToOne()
     @JoinColumn(name = "person_id", referencedColumnName = "id")
@@ -84,5 +92,21 @@ public class Book {
 
     public void deleteUser() {
         this.person = null;
+    }
+
+    public Date getTakeAt() {
+        return takeAt;
+    }
+
+    public void setTakeAt(Date takeAt) {
+        this.takeAt = takeAt;
+    }
+
+    public boolean isExpires() {
+        return expires;
+    }
+
+    public void setExpires(boolean expires) {
+        this.expires = expires;
     }
 }

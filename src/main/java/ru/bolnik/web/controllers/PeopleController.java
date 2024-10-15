@@ -5,22 +5,27 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import ru.bolnik.web.dao.PersonDAO;
 import ru.bolnik.web.models.Person;
+import ru.bolnik.web.services.BookService;
 import ru.bolnik.web.services.PeopleService;
+import ru.bolnik.web.util.PersonalValidator;
 
 import javax.validation.Valid;
 
 @Controller
 @RequestMapping("/people")
 public class PeopleController {
-//
+    //
 //    private final PersonDAO personDao;
     private final PeopleService peopleService;
+    private final PersonalValidator personalValidator;
 
     @Autowired
-    public PeopleController(PeopleService peopleService) {
+    public PeopleController(PeopleService peopleService, BookService bookService, PersonDAO personDAO, PersonalValidator personalValidator) {
 //        this.personDao = personDao;
         this.peopleService = peopleService;
+        this.personalValidator = personalValidator;
     }
 
 
@@ -47,6 +52,7 @@ public class PeopleController {
     @PostMapping
     public String create(@ModelAttribute("person") @Valid Person person,
                          BindingResult bindingResult) {
+        personalValidator.validate(person, bindingResult);
         if (bindingResult.hasErrors()) {
             return "people/new";
         }

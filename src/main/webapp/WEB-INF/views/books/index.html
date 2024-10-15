@@ -6,6 +6,7 @@
     <title>Index</title>
 </head>
 <body>
+<a href="/books?sort_by_year=true">Сортировать по году</a>
 
 <div th:each="book : ${books}">
     <a th:href="@{/books/{id}(id=${book.getId()})}"
@@ -16,6 +17,8 @@
 <hr/>
 
 <a href="/books/new">Внести Книгу в список</a>
+<br>
+<a href="/books/search">Поиск по книгам</a>
 <br>
 <a href="/people">Назад</a>
 
